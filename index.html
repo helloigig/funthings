@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Text Image Poster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;1,400&family=Libre+Caslon+Text&family=Crimson+Pro&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ecebe6;
+    --panel: #ffffff;
+    --text: #1b1b1b;
+    --muted: #6b6b66;
+    --line: #dddcd5;
+    --accent: #d8402a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161615;
+      --panel: #222220;
+      --text: #ecebe6;
+      --muted: #9a9a94;
+      --line: #3a3a36;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161615;
+    --panel: #222220;
+    --text: #ecebe6;
+    --muted: #9a9a94;
+    --line: #3a3a36;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.4 Inter, system-ui, sans-serif;
+    display: grid;
+    grid-template-columns: 340px 1fr;
+  }
+  aside {
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    padding: 20px 18px 40px;
+    overflow-y: auto;
+    height: 100vh;
+  }
+  h1 { font-size: 17px; margin: 0 0 4px; font-weight: 600; }
+  .sub { color: var(--muted); margin: 0 0 18px; font-size: 13px; }
+  .group { border-top: 1px solid var(--line); padding: 14px 0 6px; }
+  .group > .label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: block; }
+  textarea {
+    width: 100%; height: 160px; resize: vertical;
+    font: 13px/1.45 "EB Garamond", Georgia, serif;
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: 6px; padding: 8px;
+  }
+  .row { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+  .row label { flex: 0 0 96px; color: var(--muted); font-size: 13px; }
+  .row input[type=range] { flex: 1; min-width: 0; }
+  .row output { flex: 0 0 34px; text-align: right; font-variant-numeric: tabular-nums; font-size: 12px; color: var(--muted); }
+  select, input[type=text] {
+    flex: 1; min-width: 0; background: var(--bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: 6px; padding: 5px 6px; font: inherit;
+  }
+  input[type=color] { width: 36px; height: 26px; border: 1px solid var(--line); border-radius: 4px; padding: 0; background: none; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--text);
+    padding: 7px 12px; border-radius: 6px; cursor: pointer; font: inherit; font-size: 13px;
+  }
+  .btn:hover { border-color: var(--muted); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; width: 100%; padding: 10px; font-weight: 600; }
+  .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .drop { border: 1px dashed var(--line); border-radius: 8px; padding: 10px; display: flex; gap: 10px; align-items: center; }
+  .drop.over { border-color: var(--accent); }
+  #thumb { width: 56px; height: 56px; object-fit: cover; border-radius: 4px; background: var(--bg); flex: 0 0 56px; }
+  .hint { color: var(--muted); font-size: 12px; }
+  main { height: 100vh; overflow: auto; display: flex; align-items: flex-start; justify-content: center; padding: 28px; }
+  #poster { max-width: 100%; max-height: calc(100vh - 56px); height: auto; box-shadow: 0 2px 24px rgba(0,0,0,.18); background: #fff; }
+  .stat { color: var(--muted); font-size: 12px; margin-top: 8px; }
+  @media (max-width: 760px) {
+    body { grid-template-columns: 1fr; }
+    aside { height: auto; border-right: 0; border-bottom: 1px solid var(--line); padding: 16px; }
+    main { height: auto; padding: 16px; }
+    #poster { max-height: none; width: 100%; }
+  }
+</style>
+</head>
+<body>
+<aside>
+  <h1>Text Image Poster</h1>
+  <p class="sub">Set a text in justified columns and let a hidden image tint the letters.</p>
+
+  <div class="group">
+    <span class="label">Text</span>
+    <textarea id="text" spellcheck="false"></textarea>
+    <div class="btns" style="margin-top:8px">
+      <label class="btn">Upload .txt<input id="textFile" type="file" accept=".txt,.md,text/plain" hidden></label>
+      <button class="btn" id="clearText">Clear</button>
+    </div>
+    <p class="hint">One line break starts an indented paragraph; a blank line starts a new section.</p>
+  </div>
+
+  <div class="group">
+    <span class="label">Image</span>
+    <div class="drop" id="drop">
+      <img id="thumb" alt="">
+      <div>
+        <label class="btn">Upload image<input id="imgFile" type="file" accept="image/*" hidden></label>
+        <div class="hint" style="margin-top:4px">or drop one here</div>
+      </div>
+    </div>
+    <div class="row">
+      <label for="mode">Colour mode</label>
+      <select id="mode">
+        <option value="accent">Accent (spot inks)</option>
+        <option value="full">Full colour</option>
+        <option value="tone">Tone (ink density)</option>
+      </select>
+    </div>
+    <div class="row"><label for="thresh">Threshold</label><input id="thresh" type="range" min="0" max="100" value="38"><output></output></div>
+    <div class="row"><label for="darken">Legibility</label><input id="darken" type="range" min="0" max="100" value="45"><output></output></div>
+    <div class="row">
+      <label for="grain">Colour by</label>
+      <select id="grain">
+        <option value="char">Letter</option>
+        <option value="word">Word</option>
+      </select>
+    </div>
+    <div class="row"><label for="under">Show image</label><input id="under" type="range" min="0" max="100" value="0"><output></output></div>
+  </div>
+
+  <div class="group">
+    <span class="label">Layout</span>
+    <div class="row">
+      <label for="format">Format</label>
+      <select id="format">
+        <option value="2480x3508">A-series portrait</option>
+        <option value="3508x2480">A-series landscape</option>
+        <option value="2400x3600">2 : 3 portrait</option>
+        <option value="3000x3000">Square</option>
+      </select>
+    </div>
+    <div class="row"><label for="cols">Columns</label><input id="cols" type="range" min="1" max="8" value="4"><output></output></div>
+    <div class="row"><label for="margin">Margin</label><input id="margin" type="range" min="0" max="12" value="3" step="0.5"><output></output></div>
+    <div class="row"><label for="gutter">Gutter</label><input id="gutter" type="range" min="0" max="8" value="1.6" step="0.1"><output></output></div>
+    <div class="row"><label for="leading">Leading</label><input id="leading" type="range" min="100" max="180" value="122"><output></output></div>
+    <div class="row">
+      <label for="font">Typeface</label>
+      <select id="font">
+        <option value="EB Garamond">EB Garamond</option>
+        <option value="Libre Caslon Text">Libre Caslon</option>
+        <option value="Crimson Pro">Crimson Pro</option>
+        <option value="Georgia">Georgia</option>
+      </select>
+    </div>
+    <div class="row"><label>Ink / paper</label><input id="ink" type="color" value="#1c1b1a"><input id="paper" type="color" value="#ffffff"></div>
+  </div>
+
+  <div class="group">
+    <button class="btn primary" id="download">Download PNG</button>
+    <div class="stat" id="stat"></div>
+  </div>
+</aside>
+
+<main><canvas id="poster"></canvas></main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const canvas = $('poster');
+  const ctx = canvas.getContext('2d');
+
+  const DEFAULT_TEXT = `It was a long summer, and the light came in sideways through the kitchen window every evening at the same hour, so that the table and the chairs and the bowl of oranges seemed to be lit from inside, like objects in a painting nobody had finished. I remember thinking, even then, that I would want to keep this, and knowing that I would not be able to.
+My grandmother kept a notebook by the telephone in which she wrote down the names of everyone who called, whether or not she spoke to them. Most of the names meant nothing to me. Some of them appeared once and never again; others came back every week, every month, like weather. When she died we found eleven of these notebooks in a shoebox under the stairs, and for a long time no one could bring themselves to throw them away.
+The town where we lived had one main street, which ran down toward the river and then stopped, as if it had lost its nerve. On the corner there was a bakery that sold bread only in the mornings, and a hardware shop whose owner whistled the same three bars of a song nobody could identify. In the afternoons the street was empty except for the dogs and the occasional delivery truck, idling outside the pharmacy with its doors open.
+
+I have tried several times to write about that summer, and each time I find myself describing the light instead of the people. Perhaps that is because the light is what stayed. The people moved away, or grew old, or became different people with the same names. The light kept arriving every evening at the same hour, as though it had an appointment.
+My father worked nights that year, at the printing plant on the edge of town. He came home at dawn smelling of ink and solvent and hot paper, and he slept through the mornings with a towel over his eyes. Sometimes he brought home spoiled sheets, misregistered, where the red had slipped away from the black and the blue had drifted over both, and I pinned them to my bedroom wall. I thought they were more beautiful than the pages that had come out right.
+He told me once that every printed colour picture is really four pictures laid over one another, and that the eye does the rest. You never see the picture, he said. You see what you make of it. I did not understand him then. I think I understand him a little better now.
+In August it rained for nine days without stopping. The river rose to the edge of the footpath and then over it, and the bakery put sandbags across its door. We stayed inside and played cards and listened to the radio, and my mother read aloud from a novel about a family who lived on a ship, which she had found at a jumble sale with the last forty pages missing. We never learned how it ended. We made up endings instead, a different one each night, and argued about which was true.
+
+When the rain stopped the whole town smelled of wet stone and cut grass. The light came back, sideways, through the kitchen window. I sat at the table with the oranges and the notebooks and the spoiled sheets of paper, and I tried to remember everything, and I wrote it down, and I knew even as I wrote it that it was already becoming something else: four pictures laid over one another, and whatever the eye makes of them.
+Years later I went back. The bakery is a phone shop now, and the hardware shop is gone, and the printing plant has been turned into flats with large windows facing the river. I stood on the corner for a long time. A dog came and looked at me and went away again. At the same hour as always, the light came in sideways across the street, and for a moment everything seemed to be lit from inside, unfinished, waiting.`;
+
+  const PALETTE = [
+    { h: 4,   c: '#e2402b' },  // red
+    { h: 28,  c: '#ee7a12' },  // orange
+    { h: 46,  c: '#e0a000' },  // yellow (darkened for legibility)
+    { h: 125, c: '#2f9e44' },  // green
+    { h: 188, c: '#119bc2' },  // cyan
+    { h: 220, c: '#2a62d4' },  // blue
+    { h: 275, c: '#7a46c9' },  // violet
+    { h: 325, c: '#d9418c' },  // magenta
+  ];
+
+  const state = { image: null };
+
+  // ---------- default image: soft colour blobs ----------
+  function makeDefaultImage() {
+    const c = document.createElement('canvas');
+    c.width = 600; c.height = 850;
+    const g = c.getContext('2d');
+    g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+    let seed = 7;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const cols = ['#e2402b', '#2f9e44', '#2a62d4', '#ee7a12', '#119bc2', '#d9418c'];
+    for (let i = 0; i < 26; i++) {
+      const x = rnd() * c.width, y = rnd() * c.height, r = 30 + rnd() * 110;
+      const grad = g.createRadialGradient(x, y, 0, x, y, r);
+      const col = cols[i % cols.length];
+      grad.addColorStop(0, col); grad.addColorStop(0.55, col + 'cc'); grad.addColorStop(1, col + '00');
+      g.fillStyle = grad;
+      g.beginPath(); g.ellipse(x, y, r * (1.6 + rnd() * 2), r * 0.5, rnd() * 0.6 - 0.3, 0, Math.PI * 2); g.fill();
+    }
+    return c;
+  }
+
+  // ---------- colour helpers ----------
+  function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2;
+    if (max === min) return [0, 0, l];
+    const d = max - min;
+    const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    let h;
+    if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    return [h * 60, s, l];
+  }
+  const hexToRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+  const css = c => `rgb(${c[0]},${c[1]},${c[2]})`;
+
+  function nearestPalette(h) {
+    let best = PALETTE[0], bd = 999;
+    for (const p of PALETTE) {
+      const d = Math.min(Math.abs(h - p.h), 360 - Math.abs(h - p.h));
+      if (d < bd) { bd = d; best = p; }
+    }
+    return best.c;
+  }
+
+  function colourFor(rgb, opts) {
+    const [r, g, b] = rgb;
+    const [h, s, l] = rgbToHsl(r, g, b);
+    if (opts.mode === 'accent') {
+      // chroma rather than HSL saturation, so near-white pixels don't count as "saturated"
+      const chroma = (Math.max(r, g, b) - Math.min(r, g, b)) / 255;
+      return chroma >= opts.thresh ? nearestPalette(h) : opts.inkCss;
+    }
+    if (opts.mode === 'full') {
+      // pull light pixels toward ink so the text stays readable
+      const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      const t = opts.darken > 0 ? Math.max(0, lum - (1 - opts.darken)) / opts.darken : 0;
+      return css(mix(rgb, opts.ink, Math.min(1, t)));
+    }
+    // tone: density of ink follows image darkness
+    const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    const floor = opts.darken * 0.6;
+    const dens = floor + (1 - floor) * Math.pow(1 - lum, 0.8 + opts.thresh);
+    return css(mix(opts.paper, opts.ink, Math.min(1, dens)));
+  }
+
+  // ---------- text parsing & measurement ----------
+  const BASE = 100;
+  const widthCache = new Map();
+  const prefixCache = new Map();
+  let cacheFont = '';
+
+  // Separate context so measuring never depends on whatever font the poster is drawing with.
+  const mctx = document.createElement('canvas').getContext('2d');
+  function ensureFont(font) {
+    if (font !== cacheFont) { widthCache.clear(); prefixCache.clear(); cacheFont = font; }
+    mctx.font = `${BASE}px "${font}"`;
+  }
+  document.fonts.addEventListener('loadingdone', () => { cacheFont = ''; schedule(); });
+  function wordWidth(w) {
+    let v = widthCache.get(w);
+    if (v === undefined) { v = mctx.measureText(w).width; widthCache.set(w, v); }
+    return v;
+  }
+  function prefixes(w) {
+    let p = prefixCache.get(w);
+    if (!p) {
+      p = new Array(w.length + 1);
+      p[0] = 0;
+      for (let i = 1; i <= w.length; i++) p[i] = mctx.measureText(w.slice(0, i)).width;
+      prefixCache.set(w, p);
+    }
+    return p;
+  }
+
+  function parse(text) {
+    const items = [];
+    let afterBreak = true;
+    for (const raw of text.replace(/\r/g, '').split('\n')) {
+      const line = raw.trim();
+      if (!line) {
+        if (items.length && items[items.length - 1].type !== 'gap') items.push({ type: 'gap' });
+        afterBreak = true;
+        continue;
+      }
+      items.push({ type: 'para', words: line.split(/\s+/), indent: !afterBreak });
+      afterBreak = false;
+    }
+    while (items.length && items[items.length - 1].type === 'gap') items.pop();
+    return items;
+  }
+
+  function layout(items, size, colW, spaceW) {
+    const k = size / BASE, indentW = size * 1.2, sp = spaceW * k;
+    const lines = [];
+    for (const it of items) {
+      if (it.type === 'gap') { lines.push({ gap: true }); continue; }
+      let cur = [], w = 0, first = true;
+      const avail = () => colW - (first && it.indent ? indentW : 0);
+      for (const word of it.words) {
+        const ww = wordWidth(word) * k;
+        const nw = cur.length ? w + sp + ww : ww;
+        if (cur.length && nw > avail()) {
+          lines.push({ words: cur, w, indent: first && it.indent, last: false });
+          first = false; cur = [word]; w = ww;
+        } else { cur.push(word); w = nw; }
+      }
+      if (cur.length) lines.push({ words: cur, w, indent: first && it.indent, last: true });
+    }
+    return lines;
+  }
+
+  // Distribute lines into columns, dropping section gaps that land at the top of a column.
+  function paginate(lines, cols, perCol) {
+    const columns = [[]];
+    for (const ln of lines) {
+      let col = columns[columns.length - 1];
+      if (col.length >= perCol) { col = []; columns.push(col); }
+      if (ln.gap && col.length === 0) continue;
+      col.push(ln);
+    }
+    return columns.length <= cols ? columns : null;
+  }
+
+  // ---------- render ----------
+  function readOpts() {
+    const [W, H] = $('format').value.split('x').map(Number);
+    return {
+      W, H,
+      cols: +$('cols').value,
+      margin: +$('margin').value / 100,
+      gutter: +$('gutter').value / 100,
+      leading: +$('leading').value / 100,
+      font: $('font').value,
+      mode: $('mode').value,
+      thresh: +$('thresh').value / 100,
+      darken: +$('darken').value / 100,
+      grain: $('grain').value,
+      under: +$('under').value / 100,
+      inkCss: $('ink').value,
+      ink: hexToRgb($('ink').value),
+      paper: hexToRgb($('paper').value),
+      paperCss: $('paper').value,
+    };
+  }
+
+  function sampleSource(img, W, H, scale) {
+    const sw = Math.round(W * scale), sh = Math.round(H * scale);
+    const c = document.createElement('canvas');
+    c.width = sw; c.height = sh;
+    const g = c.getContext('2d', { willReadFrequently: true });
+    g.fillStyle = '#fff'; g.fillRect(0, 0, sw, sh);
+    drawCover(g, img, sw, sh);
+    return { data: g.getImageData(0, 0, sw, sh).data, sw, sh, canvas: c };
+  }
+
+  function drawCover(g, img, w, h) {
+    const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+    const s = Math.max(w / iw, h / ih);
+    const dw = iw * s, dh = ih * s;
+    g.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+  }
+
+  function render() {
+    const o = readOpts();
+    const t0 = performance.now();
+    canvas.width = o.W; canvas.height = o.H;
+    ensureFont(o.font);
+
+    ctx.fillStyle = o.paperCss;
+    ctx.fillRect(0, 0, o.W, o.H);
+
+    const img = state.image;
+    if (o.under > 0) {
+      ctx.save(); ctx.globalAlpha = o.under; drawCover(ctx, img, o.W, o.H); ctx.restore();
+    }
+
+    const m = Math.round(Math.min(o.W, o.H) * o.margin);
+    const gut = Math.round(o.W * o.gutter);
+    const areaW = o.W - 2 * m, areaH = o.H - 2 * m;
+    const colW = (areaW - gut * (o.cols - 1)) / o.cols;
+    const items = parse($('text').value);
+    const spaceW = wordWidth(' ');
+
+    if (!items.length) { $('stat').textContent = 'Add some text to begin.'; return; }
+
+    // Largest font size whose layout still fits all columns.
+    let lo = 2, hi = Math.min(areaH, colW) , best = null;
+    for (let i = 0; i < 28; i++) {
+      const size = (lo + hi) / 2;
+      const perCol = Math.floor(areaH / (size * o.leading));
+      const pages = perCol > 0 ? paginate(layout(items, size, colW, spaceW), o.cols, perCol) : null;
+      if (pages) { best = { size, pages, perCol }; lo = size; } else hi = size;
+    }
+    if (!best) { $('stat').textContent = 'Text does not fit.'; return; }
+
+    const { size, pages, perCol } = best;
+    const k = size / BASE, lineH = size * o.leading;
+    // spread leftover vertical space so the columns fill the full height
+    const usedLines = Math.max(...pages.map(p => p.length));
+    const pitch = pages.length === o.cols && usedLines === perCol ? areaH / perCol : lineH;
+    const src = sampleSource(img, o.W, o.H, 0.25);
+    const sample = (x, y) => {
+      const sx = Math.min(src.sw - 1, Math.max(0, Math.round(x * 0.25)));
+      const sy = Math.min(src.sh - 1, Math.max(0, Math.round(y * 0.25)));
+      const i = (sy * src.sw + sx) * 4;
+      return [src.data[i], src.data[i + 1], src.data[i + 2]];
+    };
+
+    ctx.font = `${size}px "${o.font}"`;
+    ctx.textBaseline = 'alphabetic';
+    let glyphs = 0;
+
+    pages.forEach((col, ci) => {
+      const left = m + ci * (colW + gut);
+      col.forEach((ln, ri) => {
+        if (ln.gap) return;
+        const base = m + ri * pitch + size * 0.82 + (pitch - lineH) / 2;
+        const midY = base - size * 0.3;
+        const x0 = left + (ln.indent ? size * 1.2 : 0);
+        const avail = colW - (ln.indent ? size * 1.2 : 0);
+        const n = ln.words.length;
+        const natural = spaceW * k;
+        const gap = !ln.last && n > 1 ? natural + (avail - ln.w) / (n - 1) : natural;
+        let x = x0;
+        for (const word of ln.words) {
+          const pre = prefixes(word);
+          const ww = pre[word.length] * k;
+          if (o.grain === 'word') {
+            ctx.fillStyle = colourFor(sample(x + ww / 2, midY), o);
+            ctx.fillText(word, x, base);
+            glyphs += word.length;
+          } else {
+            for (let i = 0; i < word.length; i++) {
+              const cx = x + pre[i] * k, cw = (pre[i + 1] - pre[i]) * k;
+              ctx.fillStyle = colourFor(sample(cx + cw / 2, midY), o);
+              ctx.fillText(word[i], cx, base);
+              glyphs++;
+            }
+          }
+          x += ww + gap;
+        }
+      });
+    });
+
+    const pt = (size / o.W * 210 / 25.4 * 72).toFixed(1);
+    $('stat').textContent = `${glyphs.toLocaleString()} letters · ${size.toFixed(1)}px (≈${pt} pt on A4) · ${Math.round(performance.now() - t0)} ms`;
+  }
+
+  let pending = 0;
+  function schedule() {
+    cancelAnimationFrame(pending);
+    pending = requestAnimationFrame(() => {
+      const f = $('font').value;
+      document.fonts.load(`20px "${f}"`).catch(() => {}).then(render);
+    });
+  }
+
+  // ---------- inputs ----------
+  function syncOutputs() {
+    document.querySelectorAll('.row input[type=range]').forEach(r => {
+      const out = r.parentElement.querySelector('output');
+      if (out) out.textContent = r.value;
+    });
+  }
+
+  document.querySelectorAll('input, select, textarea').forEach(el => {
+    if (el.type === 'file') return;
+    el.addEventListener('input', () => { syncOutputs(); schedule(); });
+  });
+
+  function loadImageFile(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    const url = URL.createObjectURL(file);
+    const im = new Image();
+    im.onload = () => { state.image = im; $('thumb').src = url; schedule(); };
+    im.src = url;
+  }
+
+  $('imgFile').addEventListener('change', e => loadImageFile(e.target.files[0]));
+  $('textFile').addEventListener('change', async e => {
+    const f = e.target.files[0];
+    if (f) { $('text').value = await f.text(); schedule(); }
+  });
+  $('clearText').addEventListener('click', () => { $('text').value = ''; $('text').focus(); schedule(); });
+
+  for (const target of [$('drop'), document.querySelector('main')]) {
+    target.addEventListener('dragover', e => { e.preventDefault(); $('drop').classList.add('over'); });
+    target.addEventListener('dragleave', () => $('drop').classList.remove('over'));
+    target.addEventListener('drop', async e => {
+      e.preventDefault(); $('drop').classList.remove('over');
+      const f = e.dataTransfer.files[0];
+      if (!f) return;
+      if (f.type.startsWith('image/')) loadImageFile(f);
+      else if (f.type.startsWith('text/') || /\.(txt|md)$/i.test(f.name)) { $('text').value = await f.text(); schedule(); }
+    });
+  }
+
+  $('download').addEventListener('click', () => {
+    canvas.toBlob(b => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b);
+      a.download = 'text-image-poster.png';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }, 'image/png');
+  });
+
+  // ---------- init ----------
+  $('text').value = DEFAULT_TEXT;
+  const def = makeDefaultImage();
+  state.image = def;
+  $('thumb').src = def.toDataURL();
+  syncOutputs();
+  schedule();
+})();
+</script>
+</body>
+</html>
