@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bot Avatars</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ecebe6;
+    --panel: #ffffff;
+    --text: #1b1b1b;
+    --muted: #6b6b66;
+    --line: #dddcd5;
+    --accent: #d8402a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161615;
+      --panel: #222220;
+      --text: #ecebe6;
+      --muted: #9a9a94;
+      --line: #3a3a36;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161615;
+    --panel: #222220;
+    --text: #ecebe6;
+    --muted: #9a9a94;
+    --line: #3a3a36;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.4 Inter, system-ui, sans-serif;
+  }
+  main { max-width: 880px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 20px; margin: 0 0 4px; font-weight: 600; }
+  h2 { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 400; margin: 0 0 12px; }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+  section {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .hero { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+  .hero p { margin: 0 0 12px; color: var(--muted); }
+  button {
+    font: inherit;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 6px 14px;
+    cursor: pointer;
+  }
+  button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .roster {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 16px 8px;
+  }
+  .roster figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .roster figcaption { font-size: 12px; color: var(--muted); }
+  .row { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-end; }
+  a { color: inherit; text-underline-offset: 2px; }
+  noscript { color: var(--accent); }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.3.1",
+    "react/jsx-runtime": "https://esm.sh/react@18.3.1/jsx-runtime",
+    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client?external=react",
+    "bot-avatars": "https://esm.sh/bot-avatars@0.2.2?external=react"
+  }
+}
+</script>
+</head>
+<body>
+<main>
+  <h1>Bot Avatars</h1>
+  <p class="sub">Animated bots from <a href="https://libraries.dev/bots.html">Libraries.dev</a>. Hover to catch their eye, click one to make it hop.</p>
+  <div id="root"><noscript>This page needs JavaScript.</noscript></div>
+</main>
+
+<script type="module">
+  import { createElement as h, useState, Fragment } from 'react';
+  import { createRoot } from 'react-dom/client';
+  import { BotAvatar } from 'bot-avatars';
+
+  const TYPES = [
+    'clover', 'flower', 'triangle', 'square', 'blob', 'ghost',
+    'circle', 'drop', 'star', 'droid', 'mech', 'alien',
+    'hexagon', 'cat', 'cloud', 'pill', 'pebble', 'puddle',
+  ];
+
+  function Agent() {
+    const [busy, setBusy] = useState(false);
+    return h('section', { className: 'hero' },
+      h(BotAvatar, { type: 'clover', state: busy ? 'working' : 'default', size: 128, face: 'mouth' }),
+      h('div', null,
+        h('h2', null, 'Agent'),
+        h('p', null, busy ? 'Working: hopping, spinning, the odd laugh.' : 'Idle: looking around, a jump now and then.'),
+        h('button', { 'aria-pressed': busy, onClick: () => setBusy(b => !b) }, busy ? 'Stop work' : 'Start work'),
+      ),
+    );
+  }
+
+  function Roster() {
+    return h('section', null,
+      h('h2', null, 'Roster: each agent gets its own shape'),
+      h('div', { className: 'roster' },
+        // seed spreads the blinks so the row doesn't move in unison
+        TYPES.map((type, i) => h('figure', { key: type },
+          h(BotAvatar, { type, size: 64, seed: i / TYPES.length }),
+          h('figcaption', null, type),
+        )),
+      ),
+    );
+  }
+
+  function States() {
+    return h('section', null,
+      h('h2', null, 'States and dress-up'),
+      h('div', { className: 'row' },
+        h(BotAvatar, { type: 'star', size: 36 }),
+        h(BotAvatar, { type: 'flower', face: 'mouth', state: 'working' }),
+        h(BotAvatar, { type: 'cat', state: 'sleeping', size: 72 }),
+        h(BotAvatar, { type: 'droid', hat: 'beanie', headphones: true, size: 72, seed: 0.3 }),
+        h(BotAvatar, { type: 'alien', glasses: 'shades', shading: 'plastic', size: 72, seed: 0.6 }),
+        h(BotAvatar, { type: 'ghost', hat: 'party', bowTie: true, size: 72, seed: 0.8 }),
+      ),
+    );
+  }
+
+  createRoot(document.getElementById('root')).render(
+    h(Fragment, null, h(Agent), h(Roster), h(States)),
+  );
+</script>
+</body>
+</html>

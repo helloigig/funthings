@@ -9,3 +9,7 @@ Open `index.html` in a browser, then:
 - **Colour modes**: *Accent* (saturated areas become red, orange, green, blue, etc. spot inks; everything else stays black), *Full colour* (each letter takes the image colour), and *Tone* (ink density follows image brightness).
 - **Layout**: format, columns, margin, gutter, leading, typeface, ink and paper colours.
 - **Download PNG** exports at print resolution (e.g. 2480×3508 for A-series).
+
+## Bot Avatars
+
+`bots.html` is a plain page showing the animated [Bot avatars from Libraries.dev](https://libraries.dev/bots.html) (`bot-avatars` for React). React and the library load from esm.sh through an import map, so there is no install or build step: just open the file. It shows an agent that switches between idle and working, a roster of all eighteen shapes, and the sleeping state with a few hats and glasses.
